@@ -40,15 +40,16 @@ export const defaultContentPageLayout: PageLayout = {
       ],
     }),
     Component.Explorer({
-      title: "Skills",
-      startPath: "skills",
-      filterFn: (node) => node.slug.startsWith("skills/"),
-    }),
-    Component.Explorer({
-      title: "Tools",
-      startCollapsed: true,
-      startPath: "tools",
-      filterFn: (node) => node.slug.startsWith("tools/"),
+      title: "Library",
+      // Single explorer with `skills/` and `tools/` rendered as the two
+      // top-level folder sections. Solves mobile: one hamburger, one overlay.
+      filterFn: (node) =>
+        node.slug.startsWith("skills/") || node.slug.startsWith("tools/"),
+      // Pretty-print the folder names for display only.
+      mapFn: (node) => {
+        if (node.slugSegment === "skills") node.displayName = "Skills"
+        if (node.slugSegment === "tools") node.displayName = "Tools"
+      },
     }),
   ],
   right: [
@@ -74,15 +75,16 @@ export const defaultListPageLayout: PageLayout = {
       ],
     }),
     Component.Explorer({
-      title: "Skills",
-      startPath: "skills",
-      filterFn: (node) => node.slug.startsWith("skills/"),
-    }),
-    Component.Explorer({
-      title: "Tools",
-      startCollapsed: true,
-      startPath: "tools",
-      filterFn: (node) => node.slug.startsWith("tools/"),
+      title: "Library",
+      // Single explorer with `skills/` and `tools/` rendered as the two
+      // top-level folder sections. Solves mobile: one hamburger, one overlay.
+      filterFn: (node) =>
+        node.slug.startsWith("skills/") || node.slug.startsWith("tools/"),
+      // Pretty-print the folder names for display only.
+      mapFn: (node) => {
+        if (node.slugSegment === "skills") node.displayName = "Skills"
+        if (node.slugSegment === "tools") node.displayName = "Tools"
+      },
     }),
   ],
   right: [],
