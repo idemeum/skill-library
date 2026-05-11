@@ -18,6 +18,11 @@ permissions:
   pages: write
   id-token: write
 
+# Opt every JS-based action into Node 24 now (default starting 2026-06-02).
+# Silences the Node 20 deprecation warnings on @v4 actions.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 concurrency:
   group: "pages"
   cancel-in-progress: false
