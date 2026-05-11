@@ -1,0 +1,96 @@
+@use "./base.scss";
+
+// shadcn-inspired design tokens reused across cards / boxes / badges.
+// Standardises radius and hover treatment to match shadcn's visual language
+// while staying inside Quartz's existing CSS variable system.
+:root {
+  --shadcn-radius: 0.5rem;
+  --shadcn-radius-sm: 0.375rem;
+}
+
+// Stat cards on the index page — pair of counters for skills + tools.
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0 2rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2.5rem 1rem;
+  border: 1px solid var(--lightgray);
+  border-radius: var(--shadcn-radius);
+  background: var(--light);
+  text-decoration: none !important;
+  color: inherit !important;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+// shadcn-style ghost hover: subtle border + background shift, no lift, no shadow.
+.stat-card:hover {
+  border-color: var(--gray);
+  background: var(--highlight);
+}
+
+.stat-card-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--secondary);
+  font-family: var(--headerFont);
+}
+
+.stat-card-label {
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+  color: var(--darkgray);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// Standardise the radius across all box-like containers so they share
+// shadcn's --radius rhythm. These selectors override the per-component
+// values declared in SkillMeta.tsx / base.scss.
+.skill-meta,
+.table-container,
+.backlinks {
+  border-radius: var(--shadcn-radius);
+}
+
+// Badges (tool + skill ref + the gray metadata pills) — use the smaller
+// shadcn radius so they stay distinct from the larger containers.
+code.skill-tool,
+code.skill-ref,
+.skill-badge,
+.skill-risk-badge {
+  border-radius: var(--shadcn-radius-sm);
+}
+
+// Sidebar list cards (Backlinks / Tools used / References) — give them a
+// soft bordered surface like a shadcn Card.
+.backlinks {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--lightgray);
+  background: var(--light);
+  margin-bottom: 1rem;
+}
+
+.backlinks > h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray);
+}
