@@ -3,7 +3,7 @@ name: Deploy skills library site to GitHub Pages
 on:
   push:
     branches:
-      - v4
+      - [main]
  
 permissions:
   contents: read
