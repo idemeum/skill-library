@@ -63,8 +63,7 @@
 // shadcn's --radius rhythm. These selectors override the per-component
 // values declared in SkillMeta.tsx / base.scss.
 .skill-meta,
-.table-container,
-.backlinks {
+.table-container {
   border-radius: var(--shadcn-radius);
 }
 
@@ -77,20 +76,3 @@ code.skill-ref,
   border-radius: var(--shadcn-radius-sm);
 }
 
-// Sidebar list cards (Backlinks / Tools used / References) — give them a
-// soft bordered surface like a shadcn Card.
-.backlinks {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--lightgray);
-  background: var(--light);
-  margin-bottom: 1rem;
-}
-
-.backlinks > h3 {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--gray);
-}
