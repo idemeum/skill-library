@@ -22,6 +22,7 @@ import { getStaticResourcesFromPlugins } from "./plugins"
 import { randomIdNonSecure } from "./util/random"
 import { ChangeEvent } from "./plugins/types"
 import { minimatch } from "minimatch"
+import { toolRisks } from "./util/toolRisks"
 
 type ContentMap = Map<
   FilePath,
@@ -124,6 +125,12 @@ async function buildQuartz(argv: Argv, mut: Mutex, clientRefresh: () => void) {
       sourceUrl: sourceUrlFor(fp),
     }
   })
+  // Refresh the global risk map so SkillMeta and ToolLinks can colour
+  // tool badges by risk in both the metadata box and the body.
+  toolRisks.clear()
+  for (const { name, riskLevel } of tools) {
+    if (name && riskLevel) toolRisks.set(name, riskLevel)
+  }
   const toolsDir = joinSegments(argv.directory, "tools") as FilePath
   await mkdir(toolsDir, { recursive: true })
   // Delete stale generated pages (root, skills/, and tools/ locations)

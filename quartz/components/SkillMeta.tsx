@@ -1,5 +1,6 @@
 import { QuartzComponentConstructor, QuartzComponentProps } from "./types"
 import { FullSlug, resolveRelative } from "../util/path"
+import { toolRisks, riskClass } from "../util/toolRisks"
 // @ts-ignore
 import script from "./scripts/skillmeta.inline"
 
@@ -28,11 +29,16 @@ interface SkillFrontmatter {
   requiresConsent?: boolean
 }
 
+// Risk badge palettes mirror the Quartz callout styles:
+//   low    → tip      (green/teal)
+//   medium → question (yellow/amber)
+//   high   → failure  (red)
+// Critical reuses the failure palette so unknown-future values stay readable.
 const RISK_STYLES: Record<string, { color: string; border: string; bg: string; label: string }> = {
-  low:      { color: "#09ad7a", border: "#09ad7144", bg: "#09ad7110", label: "Low" },
+  low:      { color: "#00bfa5", border: "#00bfa544", bg: "#00bfa510", label: "Low" },
   medium:   { color: "#dba642", border: "#dba64244", bg: "#dba64210", label: "Medium" },
-  high:     { color: "#db8942", border: "#db894244", bg: "#db894210", label: "High" },
-  critical: { color: "#d63838", border: "#d6383844", bg: "#d6383810", label: "Critical" },
+  high:     { color: "#db4242", border: "#db424244", bg: "#db424210", label: "High" },
+  critical: { color: "#db4242", border: "#db424244", bg: "#db424210", label: "Critical" },
 }
 
 export default ((() => {
@@ -107,10 +113,11 @@ const SkillMeta = ({ fileData }: QuartzComponentProps) => {
         </div>
       )}
 
-      {/* Risk */}
+      {/* Risk — labelled "Max Aggregated Risk" on skill pages, plain "Risk"
+          on tool pages where it refers to a single tool's intrinsic risk. */}
       {riskStyle && (
         <div class="skill-section">
-          <h4>Risk</h4>
+          <h4>{isSkill ? "Max Aggregated Risk" : "Risk"}</h4>
           <span
             class="skill-risk-badge"
             style={`color:${riskStyle.color};border-color:${riskStyle.border};background:${riskStyle.bg}`}
@@ -168,9 +175,11 @@ const SkillMeta = ({ fileData }: QuartzComponentProps) => {
               const href = fileData.slug
                 ? resolveRelative(fileData.slug, target)
                 : `/${target}`
+              const rc = riskClass(toolRisks.get(t))
+              const codeClass = rc ? `skill-tool ${rc}` : "skill-tool"
               return (
                 <a class="skill-tool-link" href={href} data-slug={target}>
-                  <code class="skill-tool">{t}</code>
+                  <code class={codeClass}>{t}</code>
                 </a>
               )
             })}
@@ -188,9 +197,11 @@ const SkillMeta = ({ fileData }: QuartzComponentProps) => {
               const href = fileData.slug
                 ? resolveRelative(fileData.slug, target)
                 : `/${target}`
+              const rc = riskClass(toolRisks.get(p))
+              const codeClass = rc ? `skill-tool ${rc}` : "skill-tool"
               return (
                 <a class="skill-tool-link" href={href} data-slug={target}>
-                  <code class="skill-tool">{p}</code>
+                  <code class={codeClass}>{p}</code>
                 </a>
               )
             })}
@@ -320,11 +331,29 @@ code.skill-tool {
   background: #448aff10;
   color: #448aff;
 }
-/* Skill references — Quartz "success" callout palette (green). */
+/* Tool badges, coloured by riskLevel. Mirrors Quartz callout palettes:
+   low → tip (teal), medium → question (amber), high/critical → failure (red). */
+code.skill-tool.skill-tool-low {
+  border-color: #00bfa544;
+  background: #00bfa510;
+  color: #00bfa5;
+}
+code.skill-tool.skill-tool-medium {
+  border-color: #dba64244;
+  background: #dba64210;
+  color: #dba642;
+}
+code.skill-tool.skill-tool-high {
+  border-color: #db424244;
+  background: #db424210;
+  color: #db4242;
+}
+/* Skill references — Quartz "quote" callout palette
+   (secondary text colour on a muted neutral border + tinted background). */
 code.skill-ref {
-  border: 1px solid #09ad7144;
-  background: #09ad7110;
-  color: #09ad7a;
+  border: 1px solid var(--lightgray);
+  background: var(--highlight);
+  color: var(--secondary);
 }
 `
 

@@ -8,6 +8,7 @@ import {
 } from "../../util/path"
 import { visit } from "unist-util-visit"
 import { Element, Root, Text } from "hast"
+import { toolRisks, riskClass } from "../../util/toolRisks"
 
 /**
  * Rewrites inline `<code>tool_name</code>` mentions into anchor links to the
@@ -53,11 +54,22 @@ export const ToolLinks: QuartzTransformerPlugin = () => {
           // we re-add the `skills/` prefix.
           const isSkillSlug = (s: string) =>
             skillSlugSet.has(s) || skillSlugSet.has(`skills/${s}`)
+          // Same trick for tool anchors: data-slug may be "tools/foo" or just "foo".
+          const toolNameForSlug = (s: string): string | undefined => {
+            if (s.startsWith("tools/")) {
+              const n = s.slice("tools/".length)
+              return toolNames.has(n) ? n : undefined
+            }
+            return toolNames.has(s) ? s : undefined
+          }
 
           return (tree: Root, file) => {
             const curSlug = file.data.slug as FullSlug | undefined
-            if (!curSlug || !curSlug.startsWith("skills/")) return
-            if (toolNames.size === 0) return
+            if (!curSlug) return
+            // Skip auto-generated tool pages — they shouldn't have their
+            // own description/body text auto-badged.
+            if (curSlug.startsWith("tools/")) return
+            if (toolNames.size === 0 && skillSlugSet.size === 0) return
 
             const root = pathToRoot(curSlug)
             const referenced = new Set<string>()
@@ -83,11 +95,15 @@ export const ToolLinks: QuartzTransformerPlugin = () => {
                 if (child.type !== "text") return
                 const value = (child as Text).value.trim()
 
-                // Tool badge (blue)
+                // Tool badge — colour the badge by the tool's riskLevel
                 if (toolNames.has(value)) {
                   const target = `tools/${value}` as FullSlug
                   const href = joinSegments(root, simplifySlug(target))
                   referenced.add(value)
+
+                  const codeClasses = ["skill-tool"]
+                  const rc = riskClass(toolRisks.get(value))
+                  if (rc) codeClasses.push(rc)
 
                   const anchor: Element = {
                     type: "element",
@@ -101,7 +117,7 @@ export const ToolLinks: QuartzTransformerPlugin = () => {
                       {
                         type: "element",
                         tagName: "code",
-                        properties: { className: ["skill-tool"] },
+                        properties: { className: codeClasses },
                         children: [{ type: "text", value }],
                       },
                     ],
@@ -143,19 +159,14 @@ export const ToolLinks: QuartzTransformerPlugin = () => {
                 return
               }
 
-              // (b) Cross-skill anchor written as a regular markdown link.
-              // CrawlLinks has already set data-slug on internal <a> tags.
+              // (b/c) Cross-skill or tool anchor written as a regular
+              // markdown link. CrawlLinks has already set data-slug on
+              // internal <a> tags. Two cases are handled below — skill (b)
+              // and tool (c) — depending on what the data-slug points to.
               if (node.tagName !== "a") return
               const props = node.properties ?? {}
               const dataSlug = props["data-slug"]
               if (typeof dataSlug !== "string") return
-              if (!isSkillSlug(dataSlug)) return
-              // Resolve to the full skill slug so the href is correct
-              // regardless of what CrawlLinks' "shortest" mode produced.
-              const fullTarget = (
-                dataSlug.startsWith("skills/") ? dataSlug : `skills/${dataSlug}`
-              ) as FullSlug
-              if (fullTarget === curSlug) return // self-link, skip
 
               // Skip if we've already wrapped this anchor (idempotent re-visit guard).
               const classes = (props.className as string[] | undefined) ?? []
@@ -169,7 +180,49 @@ export const ToolLinks: QuartzTransformerPlugin = () => {
               ) {
                 return
               }
-              const value = (node.children[0] as Text).value
+              const anchorText = (node.children[0] as Text).value
+
+              // (c) Tool anchor: rewrite as a blue/risk-colored tool badge.
+              const toolName = toolNameForSlug(dataSlug)
+              if (toolName) {
+                const target = `tools/${toolName}` as FullSlug
+                if (target === curSlug) return // self-link, skip
+
+                const correctHref = joinSegments(root, simplifySlug(target))
+                referenced.add(toolName)
+
+                const codeClasses = ["skill-tool"]
+                const rc = riskClass(toolRisks.get(toolName))
+                if (rc) codeClasses.push(rc)
+
+                node.properties = {
+                  ...props,
+                  href: correctHref,
+                  "data-slug": target,
+                  className: [
+                    ...classes.filter((c) => c !== "internal"),
+                    "skill-tool-link",
+                  ],
+                }
+                node.children = [
+                  {
+                    type: "element",
+                    tagName: "code",
+                    properties: { className: codeClasses },
+                    children: [{ type: "text", value: anchorText }],
+                  },
+                ]
+                return
+              }
+
+              // (b) Skill anchor
+              if (!isSkillSlug(dataSlug)) return
+              // Resolve to the full skill slug so the href is correct
+              // regardless of what CrawlLinks' "shortest" mode produced.
+              const fullTarget = (
+                dataSlug.startsWith("skills/") ? dataSlug : `skills/${dataSlug}`
+              ) as FullSlug
+              if (fullTarget === curSlug) return // self-link, skip
 
               // Recompute href against the full target slug. Quartz's
               // "shortest" mode sometimes produces a broken relative href for
@@ -188,11 +241,11 @@ export const ToolLinks: QuartzTransformerPlugin = () => {
                 {
                   type: "element",
                   tagName: "code",
-                  // `skill-ref` styles the badge with the Quartz "success"
-                  // (green) callout palette — distinguishes skill references
-                  // from tool references (blue "note" callout).
+                  // `skill-ref` styles the badge with the Quartz "quote"
+                  // callout palette — distinguishes skill references from
+                  // tool references (blue "note" callout).
                   properties: { className: ["skill-ref"] },
-                  children: [{ type: "text", value }],
+                  children: [{ type: "text", value: anchorText }],
                 },
               ]
             })

@@ -98,7 +98,7 @@ async function probeDiscovery(url: string): Promise<VerifyCheck> {
       httpStatus: r.statusCode,
       passed:     false,
       note:
-        r.failureReason === "timeout"
+        (r.failureReason === "connect_timeout" || r.failureReason === "response_timeout")
           ? "Discovery request timed out (IDP unreachable)."
           : "Network error contacting the IDP discovery endpoint.",
     };
@@ -131,7 +131,7 @@ async function probeChallenge(idp: Idp, tenant?: string): Promise<VerifyCheck | 
       httpStatus: r.statusCode,
       passed:     false,
       note:
-        r.failureReason === "timeout"
+        (r.failureReason === "connect_timeout" || r.failureReason === "response_timeout")
           ? "Auth-endpoint request timed out."
           : "Network error contacting the IDP auth endpoint.",
     };

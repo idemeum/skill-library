@@ -106,9 +106,10 @@ async function probeOkta(tenant: string, username: string): Promise<SsprProbeRes
   }, { timeoutMs: 5_000 });
 
   if (r.failureReason) {
+    const isTimeout = r.failureReason === "connect_timeout" || r.failureReason === "response_timeout";
     return {
       idp: "okta", tenant, available: "unknown",
-      evidence: `Okta probe ${r.failureReason === "timeout" ? "timed out" : "network error"} for ${url}`,
+      evidence: `Okta probe ${isTimeout ? "timed out" : "network error"} for ${url}`,
     };
   }
 
@@ -142,9 +143,10 @@ async function probeEntra(tenant: string | null, username: string): Promise<Sspr
   const r = await httpGet(url, { accept: "application/json" }, { timeoutMs: 5_000 });
 
   if (r.failureReason) {
+    const isTimeout = r.failureReason === "connect_timeout" || r.failureReason === "response_timeout";
     return {
       idp: "entra", tenant, available: "unknown",
-      evidence: `Entra userrealm probe ${r.failureReason === "timeout" ? "timed out" : "network error"}`,
+      evidence: `Entra userrealm probe ${isTimeout ? "timed out" : "network error"}`,
     };
   }
 
