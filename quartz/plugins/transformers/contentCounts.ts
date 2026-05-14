@@ -6,9 +6,9 @@ import { Root, Text } from "hast"
  * Replaces placeholder tokens in any page's body with live counts derived
  * from the site's content tree:
  *
- *   {{tools-count}}  → number of .md pages under `tools/`
- *   {{skills-count}} → number of distinct top-level folders under `skills/`
- *                      (each folder == one skill, matches our build layout)
+ *   {{tools}}  → number of .md pages under `tools/`
+ *   {{skills}} → number of distinct top-level folders under `skills/`
+ *                 (each folder == one skill, matches our build layout)
  */
 export const ContentCounts: QuartzTransformerPlugin = () => {
   return {
@@ -31,10 +31,10 @@ export const ContentCounts: QuartzTransformerPlugin = () => {
           const skillsCount = skillFolders.size
 
           const replacements: Record<string, string> = {
-            "{{tools-count}}": String(toolsCount),
-            "{{skills-count}}": String(skillsCount),
+            "{{tools}}": String(toolsCount),
+            "{{skills}}": String(skillsCount),
           }
-          const re = /\{\{(?:tools-count|skills-count)\}\}/g
+          const re = /\{\{(?:tools|skills)\}\}/g
 
           return (tree: Root) => {
             visit(tree, "text", (node: Text) => {

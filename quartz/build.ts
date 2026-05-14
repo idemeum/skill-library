@@ -91,11 +91,19 @@ async function buildQuartz(argv: Argv, mut: Mutex, clientRefresh: () => void) {
   const tsFiles = await glob("**/*.ts", sourceDir, cfg.configuration.ignorePatterns)
   const tools = tsFiles.map((fp) => {
     const source = readFileSync(joinSegments(sourceDir, fp) as FilePath, "utf-8")
-    const metaName = source.match(/export\s+const\s+meta\s*=\s*\{[^}]*?name:\s*["']([^"']+)["']/s)?.[1]
+
+    // Isolate the body of the `export const meta = { … } as const` block so
+    // every subsequent regex matches inside the meta object only, not inside
+    // JSDoc comments earlier in the file (which can contain example snippets
+    // with `description:` / `name:` etc).
+    const metaBlock =
+      source.match(/export\s+const\s+meta\s*=\s*\{([\s\S]*?)\}\s*as\s+const/)?.[1] ?? source
+
+    const metaName = metaBlock.match(/(?:^|[\{,])\s*name:\s*["']([^"']+)["']/m)?.[1]
     const name = metaName ?? path.basename(fp, ".ts")
 
     // Extract description: join all quoted string parts after "description:"
-    const descBlock = source.match(/description:\s*((?:"[^"]*"\s*(?:\+\s*)?)+)/s)?.[1]
+    const descBlock = metaBlock.match(/(?:^|[\{,])\s*description:\s*((?:"[^"]*"\s*(?:\+\s*)?)+)/s)?.[1]
     const description = descBlock
       ?.match(/"([^"]*)"/g)
       ?.map((s) => s.slice(1, -1))
@@ -103,16 +111,16 @@ async function buildQuartz(argv: Argv, mut: Mutex, clientRefresh: () => void) {
       .trim()
 
     // Extract riskLevel
-    const riskLevel = source.match(/riskLevel:\s*["']([^"']+)["']/)?.[1]
+    const riskLevel = metaBlock.match(/riskLevel:\s*["']([^"']+)["']/)?.[1]
 
     // Extract affectedScope (array like ["user", "device"])
-    const affectedScopeBlock = source.match(/affectedScope:\s*\[([^\]]*)\]/)?.[1]
+    const affectedScopeBlock = metaBlock.match(/affectedScope:\s*\[([^\]]*)\]/)?.[1]
     const affectedScope = affectedScopeBlock
       ?.match(/["']([^"']+)["']/g)
       ?.map((s) => s.slice(1, -1))
 
     // Extract requiresConsent boolean
-    const requiresConsentMatch = source.match(/requiresConsent:\s*(true|false)/)
+    const requiresConsentMatch = metaBlock.match(/requiresConsent:\s*(true|false)/)
     const requiresConsent = requiresConsentMatch ? requiresConsentMatch[1] === "true" : undefined
 
     return {

@@ -4,18 +4,7 @@ title: AI Support Agent Skill Library
 
 # Library
 
-This library contains skills and tools for the AI Support Agent.
-
-<div class="stat-cards">
-  <a class="stat-card" href="/skills/">
-    <span class="stat-card-number">{{skills-count}}</span>
-    <span class="stat-card-label">Skills</span>
-  </a>
-  <a class="stat-card" href="/tools/">
-    <span class="stat-card-number">{{tools-count}}</span>
-    <span class="stat-card-label">Tools</span>
-  </a>
-</div>
+Idemeum skill library contains **{{skills}}** skills and **{{tools}}** tools.
 
 ## Skills
 

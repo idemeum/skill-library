@@ -47,6 +47,7 @@ export const meta = {
   supportsDryRun:  true,
   affectedScope:   ["user"],
   auditRequired:   true,
+  tccCategories:   ["FullDiskAccess"],
   schema: {
     browser: z
       .enum(["chrome", "safari", "firefox", "edge", "all"])

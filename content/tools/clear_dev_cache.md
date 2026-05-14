@@ -53,6 +53,7 @@ export const meta = {
   supportsDryRun:  true,
   affectedScope:   ["user"],
   auditRequired:   true,
+  tccCategories:   ["FullDiskAccess"],
   schema: {
     tools: z
       .array(z.enum(["npm", "yarn", "pnpm", "pip", "gradle", "maven", "all"]))

@@ -48,6 +48,7 @@ export const meta = {
   supportsDryRun:  false,
   affectedScope:   ["user"],
   auditRequired:   false,
+  tccCategories:   ["FullDiskAccess"],
   schema: {
     path: z
       .string()
